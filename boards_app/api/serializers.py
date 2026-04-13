@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
+from tasks_app.api.serializers import TaskDetailSerializer
 
 from boards_app.models import Board
 
@@ -67,4 +68,4 @@ class BoardDetailSerializer(serializers.ModelSerializer):
         fields = ["id", "title", "owner_id", "members", "tasks"]
 
     def get_tasks(self, obj):
-        return []
+        return TaskDetailSerializer(obj.tasks.all(), many=True).data
