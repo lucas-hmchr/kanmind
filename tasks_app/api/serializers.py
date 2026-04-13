@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from tasks_app.models import Comment, Task
+from boards_app.models import Board
 
 User = get_user_model()
 
@@ -41,6 +42,10 @@ class TaskSerializer(serializers.ModelSerializer):
 
 
 class TaskCreateUpdateSerializer(serializers.ModelSerializer):
+    board = serializers.PrimaryKeyRelatedField(
+        queryset=Board.objects.all(),
+        required=False,
+    )
     assignee_id = serializers.PrimaryKeyRelatedField(
         source="assignee",
         queryset=User.objects.all(),
@@ -57,6 +62,7 @@ class TaskCreateUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Task
         fields = [
+            "board",
             "title",
             "description",
             "status",
