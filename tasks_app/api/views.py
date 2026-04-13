@@ -12,7 +12,8 @@ from tasks_app.api.permissions import (
 from tasks_app.api.serializers import (
     CommentSerializer,
     TaskCreateUpdateSerializer,
-    TaskSerializer,
+    TaskDetailSerializer,
+    TaskListSerializer,
 )
 from tasks_app.models import Comment, Task
 
@@ -22,7 +23,7 @@ def raise_task_validation(message):
 
 
 class AssignedToMeView(generics.ListAPIView):
-    serializer_class = TaskSerializer
+    serializer_class = TaskListSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
@@ -30,7 +31,7 @@ class AssignedToMeView(generics.ListAPIView):
 
 
 class ReviewingView(generics.ListAPIView):
-    serializer_class = TaskSerializer
+    serializer_class = TaskListSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
@@ -48,7 +49,9 @@ class TaskViewSet(viewsets.ModelViewSet):
     def get_serializer_class(self):
         if self.action in ["create", "partial_update"]:
             return TaskCreateUpdateSerializer
-        return TaskSerializer
+        if self.action == "retrieve":
+            return TaskDetailSerializer
+        return TaskListSerializer
 
     def get_permissions(self):
         if self.action in ["create"]:
@@ -72,13 +75,13 @@ class TaskViewSet(viewsets.ModelViewSet):
 
         self._validate_board_users(board, serializer.validated_data)
         task = serializer.save(creator=request.user)
-        output = TaskSerializer(task)
+        output = TaskDetailSerializer(task)
         return Response(output.data, status=status.HTTP_201_CREATED)
 
     def retrieve(self, request, *args, **kwargs):
         task = self.get_object()
         self.check_object_permissions(request, task)
-        serializer = TaskSerializer(task)
+        serializer = TaskDetailSerializer(task)
         return Response(serializer.data)
 
     def partial_update(self, request, *args, **kwargs):
@@ -96,7 +99,7 @@ class TaskViewSet(viewsets.ModelViewSet):
 
         self._validate_board_users(task.board, serializer.validated_data)
         task = serializer.save()
-        output = TaskSerializer(task)
+        output = TaskDetailSerializer(task)
         return Response(output.data, status=status.HTTP_200_OK)
 
     def destroy(self, request, *args, **kwargs):
