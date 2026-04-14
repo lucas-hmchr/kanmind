@@ -67,8 +67,7 @@ class TaskViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        board_id = serializer.validated_data["board"]
-        board = get_object_or_404(Board, pk=board_id)
+        board = serializer.validated_data["board"]
         if not self._is_board_member(request.user, board):
             self.permission_denied(
                 request,

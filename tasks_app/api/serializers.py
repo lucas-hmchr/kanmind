@@ -1,11 +1,22 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
+from rest_framework.exceptions import NotFound
 
 from boards_app.models import Board
 from tasks_app.models import Comment, Task
 
 User = get_user_model()
 
+
+class NotFoundPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
+    def to_internal_value(self, data):
+        queryset = self.get_queryset()
+        try:
+            return queryset.get(pk=data)
+        except queryset.model.DoesNotExist:
+            raise NotFound("Board not found.")
+        except (TypeError, ValueError):
+            self.fail("incorrect_type", data_type=type(data).__name__)
 
 class TaskUserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -64,7 +75,10 @@ class TaskDetailSerializer(serializers.ModelSerializer):
 
 
 class TaskCreateUpdateSerializer(serializers.ModelSerializer):
-    board = serializers.IntegerField(required=False)
+    board = NotFoundPrimaryKeyRelatedField(
+        queryset=Board.objects.all(),
+        required=False,
+    )
     assignee_id = serializers.PrimaryKeyRelatedField(
         source="assignee",
         queryset=User.objects.all(),
