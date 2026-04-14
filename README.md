@@ -8,7 +8,6 @@ Simple backend API for a Kanban board application built with Django and Django R
 - Task management (status, priority, assignment, review)
 - Comment system
 - Permission system (board members, owners, task creators)
-- Django admin for debugging
 
 ## Tech Stack
 - Python >=3.12
