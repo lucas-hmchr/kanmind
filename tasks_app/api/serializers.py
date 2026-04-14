@@ -43,6 +43,7 @@ class TaskListSerializer(serializers.ModelSerializer):
 
 
 class TaskDetailSerializer(serializers.ModelSerializer):
+    board = serializers.IntegerField(source="board.id", read_only=True)
     assignee = TaskUserSerializer(read_only=True)
     reviewer = TaskUserSerializer(read_only=True)
     comments_count = serializers.IntegerField(source="comments.count", read_only=True)
@@ -51,7 +52,7 @@ class TaskDetailSerializer(serializers.ModelSerializer):
         model = Task
         fields = [
             "id",
-            "title",
+            "board",
             "description",
             "status",
             "priority",
