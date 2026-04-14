@@ -22,10 +22,12 @@ class BoardViewSet(viewsets.ModelViewSet):
     queryset = Board.objects.all()
 
     def get_queryset(self):
-        user = self.request.user
-        return Board.objects.filter(
-            Q(owner=user) | Q(members=user)
-        ).distinct()
+        if self.action == "list":
+            user = self.request.user
+            return Board.objects.filter(
+                Q(owner=user) | Q(members=user)
+            ).distinct()
+        return Board.objects.all()
 
     def get_serializer_class(self):
         if self.action == "list":

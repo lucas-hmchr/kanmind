@@ -1,4 +1,5 @@
 from django.shortcuts import get_object_or_404
+from boards_app.models import Board
 from rest_framework import generics, status, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -66,7 +67,8 @@ class TaskViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        board = serializer.validated_data["board"]
+        board_id = serializer.validated_data["board"]
+        board = get_object_or_404(Board, pk=board_id)
         if not self._is_board_member(request.user, board):
             self.permission_denied(
                 request,

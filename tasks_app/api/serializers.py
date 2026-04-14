@@ -64,10 +64,7 @@ class TaskDetailSerializer(serializers.ModelSerializer):
 
 
 class TaskCreateUpdateSerializer(serializers.ModelSerializer):
-    board = serializers.PrimaryKeyRelatedField(
-        queryset=Board.objects.all(),
-        required=False,
-    )
+    board = serializers.IntegerField(required=False)
     assignee_id = serializers.PrimaryKeyRelatedField(
         source="assignee",
         queryset=User.objects.all(),
