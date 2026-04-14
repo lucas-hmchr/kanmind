@@ -11,39 +11,50 @@ Simple backend API for a Kanban board application built with Django and Django R
 - Django admin for debugging
 
 ## Tech Stack
-- Python
-- Django
-- Django REST Framework
-- Token Authentication
-- SQLite (development)
+- Python >=3.12
+- Django == 6.0.3
+- Django REST Framework == 3.17.1
 
 ## Setup
 1. Clone project
+```bash
 git clone https://github.com/lucas-hmchr/kanmind
-
+```
 
 2. Create virtual environment
 python -m venv venv
 
 Activate:
 Windows:
+```bash
 venv\Scripts\activate
+```
 
 Mac/Linux:
+```bash
 source venv/bin/activate
+```
 
 3. Install dependencies
+```bash
 pip install -r requirements.txt
+```
 
 4. Run migrations
+```bash
 python manage.py makemigrations
 python manage.py migrate
+```
 
 5. Create superuser (optional)
+```bash
 python manage.py createsuperuser
+```
 
 6. Start server
+```bash
 python manage.py runserver
+```
 
 API:
 http://127.0.0.1:8000/api/
@@ -89,6 +100,5 @@ DELETE /api/tasks/{task_id}/comments/{comment_id}/
 - Only board owners can delete boards
 - Only task creators or board owners can delete tasks
 - Only comment authors can delete comments
-- Django admin is available for testing and debugging
 
 Backend learning project with Django & DRF 🚀
