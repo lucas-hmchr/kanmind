@@ -18,10 +18,13 @@ Simple backend API for a Kanban board application built with Django and Django R
 1. Clone project
 ```bash
 git clone https://github.com/lucas-hmchr/kanmind
+cd kanmind
 ```
 
 2. Create virtual environment
+```bash
 python -m venv venv
+```
 
 Activate:
 Windows:
