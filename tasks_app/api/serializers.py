@@ -64,6 +64,7 @@ class TaskDetailSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "board",
+            "title",
             "description",
             "status",
             "priority",

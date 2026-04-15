@@ -44,6 +44,9 @@ class TaskViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        if self.action in ["retrieve", "partial_update", "destroy"]:
+            return Task.objects.all()
+
         user = self.request.user
         return Task.objects.filter(board__members=user).distinct()
 
