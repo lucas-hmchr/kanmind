@@ -23,6 +23,9 @@ def raise_task_validation(message):
     raise ValidationError({"detail": message})
 
 
+def _is_board_member(self, user, board):
+        return user == board.owner or board.members.filter(id=user.id).exists()
+
 class AssignedToMeView(generics.ListAPIView):
     serializer_class = TaskListSerializer
     permission_classes = [IsAuthenticated]
@@ -71,7 +74,7 @@ class TaskViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
 
         board = serializer.validated_data["board"]
-        if not self._is_board_member(request.user, board):
+        if not _is_board_member(self, request.user, board):
             self.permission_denied(
                 request,
                 message="You must be a board member to create a task.",
@@ -112,17 +115,14 @@ class TaskViewSet(viewsets.ModelViewSet):
         task.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    def _is_board_member(self, user, board):
-        return user == board.owner or board.members.filter(id=user.id).exists()
-
     def _validate_board_users(self, board, validated_data):
         assignee = validated_data.get("assignee")
         reviewer = validated_data.get("reviewer")
 
-        if assignee and not self._is_board_member(assignee, board):
+        if assignee and not _is_board_member(self, assignee, board):
             raise_task_validation("Assignee must be a board member.")
 
-        if reviewer and not self._is_board_member(reviewer, board):
+        if reviewer and not _is_board_member(self, reviewer, board):
             raise_task_validation("Reviewer must be a board member.")
 
 
@@ -135,7 +135,7 @@ class TaskCommentListCreateView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         task = self.get_task()
-        if not self._is_board_member(self.request.user, task.board):
+        if not _is_board_member(self, self.request.user, task.board):
             self.permission_denied(
                 self.request,
                 message="You must be a board member to access comments.",
@@ -144,15 +144,14 @@ class TaskCommentListCreateView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         task = self.get_task()
-        if not self._is_board_member(self.request.user, task.board):
+        if not _is_board_member(self, self.request.user, task.board):
             self.permission_denied(
                 self.request,
                 message="You must be a board member to comment on this task.",
             )
         serializer.save(author=self.request.user, task=task)
 
-    def _is_board_member(self, user, board):
-        return user == board.owner or board.members.filter(id=user.id).exists()
+
 
 
 class TaskCommentDeleteView(generics.DestroyAPIView):
