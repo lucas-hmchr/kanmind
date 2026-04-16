@@ -9,6 +9,9 @@ User = get_user_model()
 
 
 class NotFoundPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
+    """
+    Custom PrimaryKeyRelatedField that raises a 404 error if the object is not found.
+    """
     def to_internal_value(self, data):
         queryset = self.get_queryset()
         try:
@@ -19,12 +22,18 @@ class NotFoundPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
             self.fail("incorrect_type", data_type=type(data).__name__)
 
 class TaskUserSerializer(serializers.ModelSerializer):
+    """
+    Compact serializer for user info in the context of tasks.
+    """
     class Meta:
         model = User
         fields = ["id", "email", "fullname"]
 
 
 class CommentSerializer(serializers.ModelSerializer):
+    """
+    Serializer for task comments.
+    """
     author = serializers.CharField(source="author.fullname", read_only=True)
 
     class Meta:
@@ -33,6 +42,9 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class TaskListSerializer(serializers.ModelSerializer):
+    """
+    Serializer for listing tasks with basic info.
+    """
     assignee = TaskUserSerializer(read_only=True)
     reviewer = TaskUserSerializer(read_only=True)
     comments_count = serializers.IntegerField(source="comments.count", read_only=True)
@@ -54,6 +66,9 @@ class TaskListSerializer(serializers.ModelSerializer):
 
 
 class TaskDetailSerializer(serializers.ModelSerializer):
+    """
+    Detailed serializer for a single task.
+    """
     board = serializers.IntegerField(source="board.id", read_only=True)
     assignee = TaskUserSerializer(read_only=True)
     reviewer = TaskUserSerializer(read_only=True)
@@ -76,6 +91,9 @@ class TaskDetailSerializer(serializers.ModelSerializer):
 
 
 class TaskCreateUpdateSerializer(serializers.ModelSerializer):
+    """
+    Serializer for creating and updating tasks.
+    """
     board = NotFoundPrimaryKeyRelatedField(
         queryset=Board.objects.all(),
         required=False,

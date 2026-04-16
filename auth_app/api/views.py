@@ -8,6 +8,10 @@ from auth_app.api.serializers import LoginSerializer, RegistrationSerializer
 
 
 class RegistrationView(APIView):
+    """
+    API view for user registration.
+    Registers a new user and returns an authentication token.
+    """
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -28,6 +32,10 @@ class RegistrationView(APIView):
 
 
 class LoginView(APIView):
+    """
+    API view for user login.
+    Authenticates a user and returns an authentication token.
+    """
     permission_classes = [AllowAny]
 
     def post(self, request):

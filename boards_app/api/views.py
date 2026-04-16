@@ -18,6 +18,10 @@ User = get_user_model()
 
 
 class BoardViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for viewing and editing boards.
+    Supports list, create, retrieve, partial_update, and destroy actions.
+    """
     permission_classes = [IsAuthenticated]
     queryset = Board.objects.all()
 
@@ -97,6 +101,10 @@ class BoardViewSet(viewsets.ModelViewSet):
 
 
 class EmailCheckView(APIView):
+    """
+    API view to check if a user with a specific email exists.
+    Returns user summary if found.
+    """
     permission_classes = [IsAuthenticated]
 
     def get(self, request):

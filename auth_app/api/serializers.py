@@ -5,6 +5,10 @@ from auth_app.models import User
 
 
 class RegistrationSerializer(serializers.ModelSerializer):
+    """
+    Serializer for user registration.
+    Handles user creation and password validation.
+    """
     repeated_password = serializers.CharField(write_only=True)
 
     class Meta:
@@ -32,6 +36,10 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
 
 class LoginSerializer(serializers.Serializer):
+    """
+    Serializer for user login.
+    Validates user credentials.
+    """
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
 

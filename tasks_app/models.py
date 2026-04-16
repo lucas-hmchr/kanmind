@@ -5,6 +5,10 @@ from boards_app.models import Board
 
 
 class Task(models.Model):
+    """
+    Represents a Task within a Board.
+    Tasks have status, priority, assignee, reviewer, and due date.
+    """
     STATUS_CHOICES = [
         ("to-do", "To Do"),
         ("in-progress", "In Progress"),
@@ -59,6 +63,9 @@ class Task(models.Model):
 
 
 class Comment(models.Model):
+    """
+    Represents a comment made by a user on a Task.
+    """
     task = models.ForeignKey(
         Task,
         on_delete=models.CASCADE,

@@ -8,12 +8,18 @@ User = get_user_model()
 
 
 class UserSummarySerializer(serializers.ModelSerializer):
+    """
+    Compact serializer for user information (id, email, fullname).
+    """
     class Meta:
         model = User
         fields = ["id", "email", "fullname"]
 
 
 class BoardListSerializer(serializers.ModelSerializer):
+    """
+    Serializer for listing boards with basic info and aggregated counts.
+    """
     member_count = serializers.SerializerMethodField()
     ticket_count = serializers.SerializerMethodField()
     tasks_to_do_count = serializers.SerializerMethodField()
@@ -46,6 +52,9 @@ class BoardListSerializer(serializers.ModelSerializer):
 
 
 class BoardCreateUpdateSerializer(serializers.ModelSerializer):
+    """
+    Serializer for creating and updating boards.
+    """
     members = serializers.PrimaryKeyRelatedField(
         many=True,
         queryset=User.objects.all(),
@@ -59,6 +68,9 @@ class BoardCreateUpdateSerializer(serializers.ModelSerializer):
 
 
 class BoardDetailSerializer(serializers.ModelSerializer):
+    """
+    Detailed serializer for a single board, including its members and tasks.
+    """
     owner_id = serializers.IntegerField(source="owner.id", read_only=True)
     members = UserSummarySerializer(many=True, read_only=True)
     tasks = serializers.SerializerMethodField()

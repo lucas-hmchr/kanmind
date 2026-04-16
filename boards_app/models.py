@@ -2,6 +2,10 @@ from django.db import models
 from django.conf import settings
 
 class Board(models.Model):
+    """
+    Represents a Kanban board.
+    Boards have a title, an owner, and multiple members.
+    """
     title = models.CharField(max_length=255)
     members = models.ManyToManyField(
         settings.AUTH_USER_MODEL,

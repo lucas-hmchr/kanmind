@@ -3,6 +3,10 @@ from django.db import models
 
 
 class CustomUserManager(BaseUserManager):
+    """
+    Custom manager for the User model where email is the unique identifier
+    for authentication instead of usernames.
+    """
     def create_user(self, email, password=None, **extra_fields):
         if not email:
             raise ValueError("Email is required.")
@@ -26,6 +30,9 @@ class CustomUserManager(BaseUserManager):
 
 
 class User(AbstractUser):
+    """
+    Custom User model that uses email as the unique identifier.
+    """
     username = models.CharField(max_length=150, unique=True, blank=True)
     email = models.EmailField(unique=True)
     fullname = models.CharField(max_length=255)

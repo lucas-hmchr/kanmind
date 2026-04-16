@@ -27,6 +27,9 @@ def _is_board_member(user, board):
         return user == board.owner or board.members.filter(id=user.id).exists()
 
 class AssignedToMeView(generics.ListAPIView):
+    """
+    API view to list tasks assigned to the current user.
+    """
     serializer_class = TaskListSerializer
     permission_classes = [IsAuthenticated]
 
@@ -35,6 +38,9 @@ class AssignedToMeView(generics.ListAPIView):
 
 
 class ReviewingView(generics.ListAPIView):
+    """
+    API view to list tasks where the current user is the reviewer.
+    """
     serializer_class = TaskListSerializer
     permission_classes = [IsAuthenticated]
 
@@ -42,6 +48,10 @@ class ReviewingView(generics.ListAPIView):
         return Task.objects.filter(reviewer=self.request.user)
 
 class TaskListCreateView(generics.ListCreateAPIView):
+    """
+    API view to list and create tasks.
+    List shows all tasks in boards where the user is a member.
+    """
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
@@ -65,6 +75,9 @@ class TaskListCreateView(generics.ListCreateAPIView):
 
 
 class TaskRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    API view to retrieve, update, or delete a specific task.
+    """
     queryset = Task.objects.all()
     lookup_url_kwarg = "task_id"
 
@@ -111,6 +124,9 @@ def validate_board_users(board, validated_data):
 
 
 class TaskCommentListCreateView(generics.ListCreateAPIView):
+    """
+    API view to list and create comments for a specific task.
+    """
     serializer_class = CommentSerializer
     permission_classes = [IsAuthenticated]
     lookup_url_kwarg = "task_id"
@@ -138,6 +154,9 @@ class TaskCommentListCreateView(generics.ListCreateAPIView):
 
 
 class TaskCommentDeleteView(generics.DestroyAPIView):
+    """
+    API view to delete a specific comment.
+    """
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer
     permission_classes = [IsAuthenticated, IsCommentAuthor]
