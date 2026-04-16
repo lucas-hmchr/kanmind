@@ -13,5 +13,8 @@ class Board(models.Model):
         on_delete=models.CASCADE,
         related_name="owned_boards",
     )
+    class Meta:
+        ordering = ["title"]
+
     def __str__(self):
         return self.title

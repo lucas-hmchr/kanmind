@@ -1,5 +1,5 @@
 from django.shortcuts import get_object_or_404
-from boards_app.models import Board
+
 from rest_framework import generics, status, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -23,7 +23,7 @@ def raise_task_validation(message):
     raise ValidationError({"detail": message})
 
 
-def _is_board_member(self, user, board):
+def _is_board_member(user, board):
         return user == board.owner or board.members.filter(id=user.id).exists()
 
 class AssignedToMeView(generics.ListAPIView):
@@ -41,61 +41,49 @@ class ReviewingView(generics.ListAPIView):
     def get_queryset(self):
         return Task.objects.filter(reviewer=self.request.user)
 
-
-class TaskViewSet(viewsets.ModelViewSet):
-    queryset = Task.objects.all()
+class TaskListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        if self.action in ["retrieve", "partial_update", "destroy"]:
-            return Task.objects.all()
-
         user = self.request.user
         return Task.objects.filter(board__members=user).distinct()
 
     def get_serializer_class(self):
-        if self.action in ["create", "partial_update"]:
+        if self.request.method == "POST":
             return TaskCreateUpdateSerializer
-        if self.action == "retrieve":
-            return TaskDetailSerializer
         return TaskListSerializer
 
-    def get_permissions(self):
-        if self.action in ["create"]:
-            return [IsAuthenticated()]
-        if self.action in ["partial_update", "retrieve"]:
-            return [IsAuthenticated(), IsBoardMember()]
-        if self.action == "destroy":
-            return [IsAuthenticated(), IsTaskCreatorOrBoardOwner()]
-        return [IsAuthenticated()]
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
+    def perform_create(self, serializer):
         board = serializer.validated_data["board"]
-        if not _is_board_member(self, request.user, board):
+        if not _is_board_member(self.request.user, board):
             self.permission_denied(
-                request,
+                self.request,
                 message="You must be a board member to create a task.",
             )
+        validate_board_users(board, serializer.validated_data)
+        serializer.save(creator=self.request.user)
 
-        self._validate_board_users(board, serializer.validated_data)
-        task = serializer.save(creator=request.user)
-        output = TaskDetailSerializer(task)
-        return Response(output.data, status=status.HTTP_201_CREATED)
 
-    def retrieve(self, request, *args, **kwargs):
+class TaskRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Task.objects.all()
+    lookup_url_kwarg = "task_id"
+
+    def get_permissions(self):
+        if self.request.method == "DELETE":
+            return [IsAuthenticated(), IsTaskCreatorOrBoardOwner()]
+        return [IsAuthenticated(), IsBoardMember()]
+
+    def get_serializer_class(self):
+        if self.request.method == "GET":
+            return TaskDetailSerializer
+        return TaskCreateUpdateSerializer
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop("partial", True)
         task = self.get_object()
         self.check_object_permissions(request, task)
-        serializer = TaskDetailSerializer(task)
-        return Response(serializer.data)
 
-    def partial_update(self, request, *args, **kwargs):
-        task = self.get_object()
-        self.check_object_permissions(request, task)
-
-        serializer = self.get_serializer(task, data=request.data, partial=True)
+        serializer = self.get_serializer(task, data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
 
         if "board" in serializer.validated_data:
@@ -104,38 +92,35 @@ class TaskViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        self._validate_board_users(task.board, serializer.validated_data)
-        task = serializer.save()
+        validate_board_users(task.board, serializer.validated_data)
+        serializer.save()
+
         output = TaskDetailSerializer(task)
         return Response(output.data, status=status.HTTP_200_OK)
 
-    def destroy(self, request, *args, **kwargs):
-        task = self.get_object()
-        self.check_object_permissions(request, task)
-        task.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
-    def _validate_board_users(self, board, validated_data):
-        assignee = validated_data.get("assignee")
-        reviewer = validated_data.get("reviewer")
+def validate_board_users(board, validated_data):
+    assignee = validated_data.get("assignee")
+    reviewer = validated_data.get("reviewer")
 
-        if assignee and not _is_board_member(self, assignee, board):
-            raise_task_validation("Assignee must be a board member.")
+    if assignee and not _is_board_member(assignee, board):
+        raise_task_validation("Assignee must be a board member.")
 
-        if reviewer and not _is_board_member(self, reviewer, board):
-            raise_task_validation("Reviewer must be a board member.")
+    if reviewer and not _is_board_member(reviewer, board):
+        raise_task_validation("Reviewer must be a board member.")
 
 
 class TaskCommentListCreateView(generics.ListCreateAPIView):
     serializer_class = CommentSerializer
     permission_classes = [IsAuthenticated]
+    lookup_url_kwarg = "task_id"
 
     def get_task(self):
         return get_object_or_404(Task, pk=self.kwargs["task_id"])
 
     def get_queryset(self):
         task = self.get_task()
-        if not _is_board_member(self, self.request.user, task.board):
+        if not _is_board_member(self.request.user, task.board):
             self.permission_denied(
                 self.request,
                 message="You must be a board member to access comments.",
@@ -144,14 +129,12 @@ class TaskCommentListCreateView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         task = self.get_task()
-        if not _is_board_member(self, self.request.user, task.board):
+        if not _is_board_member(self.request.user, task.board):
             self.permission_denied(
                 self.request,
                 message="You must be a board member to comment on this task.",
             )
         serializer.save(author=self.request.user, task=task)
-
-
 
 
 class TaskCommentDeleteView(generics.DestroyAPIView):
