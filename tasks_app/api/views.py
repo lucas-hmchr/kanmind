@@ -63,15 +63,22 @@ class TaskListCreateView(generics.ListCreateAPIView):
             return TaskCreateUpdateSerializer
         return TaskListSerializer
 
-    def perform_create(self, serializer):
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
         board = serializer.validated_data["board"]
-        if not _is_board_member(self.request.user, board):
+        if not _is_board_member(request.user, board):
             self.permission_denied(
-                self.request,
+                request,
                 message="You must be a board member to create a task.",
             )
+
         validate_board_users(board, serializer.validated_data)
-        serializer.save(creator=self.request.user)
+        task = serializer.save(creator=request.user)
+
+        output = TaskDetailSerializer(task)
+        return Response(output.data, status=status.HTTP_201_CREATED)
 
 
 class TaskRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
